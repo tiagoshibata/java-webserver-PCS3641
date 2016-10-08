@@ -17,7 +17,7 @@ public class HttpServer {
 
     public void run() throws IOException {
         System.out.println("PCS3641 HTTP Server starting");
-        ServerSocket serverSocket = new ServerSocket(80);
+        ServerSocket serverSocket = new ServerSocket(8090);
 
         for (;;) {
             Socket connection = serverSocket.accept();

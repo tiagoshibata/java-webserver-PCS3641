@@ -7,15 +7,15 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 
 public class HttpHeader {
-    private String type;
+    private String method;
     private String page;
     private String version;
     private Hashtable<String, String> fields;
 
-    public void parse(Reader rawReader) throws HttpParseException {
+    public void parse(Reader rawReader) throws HttpStatusCode {
         BufferedReader reader = new BufferedReader(rawReader);
 
-        parseRequestType(readLine(reader));
+        parseStatusLine(readLine(reader));
 
         fields = new Hashtable<>();
         for (String line = readLine(reader); !line.isEmpty(); line = readLine(reader)) {
@@ -23,8 +23,12 @@ public class HttpHeader {
         }
     }
 
-    public String getType() {
-        return type;
+    public byte[] buildResponse(HttpStatusCode status) {
+        return ("HTTP/1.0 " + String.valueOf(status.getStatusCode()) + " " + status.getMessage() + "\r\n\r\n").getBytes();
+    }
+
+    public String getMethod() {
+        return method;
     }
 
     public String getPage() {
@@ -43,31 +47,36 @@ public class HttpHeader {
         return fields.get(key.toLowerCase());
     }
 
-    private String readLine(BufferedReader reader) throws HttpParseException {
+    private String readLine(BufferedReader reader) throws HttpStatusCode {
         try {
-            return reader.readLine();
+            String line = reader.readLine();
+            return (line == null) ? "" : line;
         } catch (IOException e) {
-            throw new HttpParseException("IOException: " + e.toString());
+            throw new HttpStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR, "Error receiving client data");
         }
     }
 
-    private void parseRequestType(String line) throws HttpParseException {
+    private void parseStatusLine(String line) throws HttpStatusCode {
         String[] fields = line.split(" ");
 
         if (fields.length < 3 || !fields[2].startsWith("HTTP/")) {
-            throw new HttpParseException("Header is not HTTP");
+            throw new HttpStatusCode(HttpStatusCode.NOT_IMPLEMENTED, "Only HTTP headers are supported");
         }
 
-        type = fields[0];
+        method = fields[0].toUpperCase();
         page = fields[1];
         version = fields[2].substring(5);
+
+        if (!method.equals("GET") && !method.equals("POST")) {
+            throw new HttpStatusCode(HttpStatusCode.METHOD_NOT_ALLOWED, "Method " + method + " unknown");
+        }
     }
 
-    private void parseField(String line) throws HttpParseException {
+    private void parseField(String line) throws HttpStatusCode {
         String[] keyValue = line.split(":", 2);
 
         if (keyValue.length != 2) {
-            throw new HttpParseException("Header field without colon");
+            throw new HttpStatusCode(HttpStatusCode.BAD_REQUEST, "Malformed header (missing colon)");
         }
 
         fields.put(keyValue[0].toLowerCase(), keyValue[1].replaceAll("^\\s+", ""));

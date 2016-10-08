@@ -1,5 +1,6 @@
 package org.pcs3641;
 
+import java.io.IOException;
 import java.net.Socket;
 
 public abstract class WebConnection implements Runnable {
