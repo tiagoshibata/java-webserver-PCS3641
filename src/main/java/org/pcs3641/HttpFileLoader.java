@@ -18,7 +18,7 @@ public class HttpFileLoader {
         this.name = name;
 
         if (name.contains("secure")) {
-
+            new HttpAuth(header).enforce();
         }
 
         String virtualHost = header.getField("Host", "default").split(":", 2)[0];  // ignore port
