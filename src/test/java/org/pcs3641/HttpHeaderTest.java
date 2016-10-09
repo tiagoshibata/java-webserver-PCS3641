@@ -2,7 +2,6 @@ package org.pcs3641;
 
 import org.junit.Test;
 
-import java.io.IOException;
 import java.io.StringReader;
 
 import static org.junit.Assert.*;

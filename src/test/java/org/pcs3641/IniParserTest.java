@@ -15,12 +15,14 @@ public class IniParserTest {
                 "private.pcs3641=/srv/private\n" +
                 "; comment\n" +
                 "[Users]\n" +
-                "admin=admin_password");
+                "admin=admin_password\n" +
+                "private.pcs3641=private_password");
         Dictionary<String, String> virtualHosts = parser.getSection("VirtualHosts");
         Dictionary<String, String> users = parser.getSection("Users");
 
         assertEquals("/srv/http", virtualHosts.get("public.pcs3641"));
         assertEquals("/srv/private", virtualHosts.get("private.pcs3641"));
         assertEquals("admin_password", users.get("admin"));
+        assertEquals("private_password", users.get("private.pcs3641"));
     }
 }

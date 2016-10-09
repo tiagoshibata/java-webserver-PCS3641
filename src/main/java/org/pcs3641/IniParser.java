@@ -1,10 +1,20 @@
 package org.pcs3641;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
 public class IniParser {
     private Hashtable<String, Hashtable<String, String>> sections;
+
+    public IniParser() {}
+
+    public IniParser(Path path) throws IOException {
+        String data = new String(Files.readAllBytes(path));
+        parse(data);
+    }
 
     public void parse(String data) {
         String lines[] = data.split("\\r?\\n");

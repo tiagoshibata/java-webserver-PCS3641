@@ -14,7 +14,8 @@ public class HttpConnection extends WebConnection {
 
     protected void handleConnection(Socket connection) {
         HttpStatusCode responseStatus = new HttpStatusCode(HttpStatusCode.OK, "OK");
-        byte[] payload = null;
+        byte[] rawResponseHeader;
+        byte[] rawResponsePayload;
 
         try {
             InputStreamReader reader = new InputStreamReader(connection.getInputStream());
@@ -26,24 +27,29 @@ public class HttpConnection extends WebConnection {
             }
 
             HttpFileLoader loader = new HttpFileLoader(header);
-            payload = loader.read();
+            rawResponsePayload = loader.read();
+
+            HttpHeader responseHeader = new HttpHeader();
+            responseHeader.setField("Content-type", loader.getMime());
+            rawResponseHeader = responseHeader.buildResponse((responseStatus));
         } catch (IOException e) {
             System.out.println("Reading from client failed:");
             e.printStackTrace();
-            responseStatus = new HttpStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR, "Error receiving client data");
+            HttpStatusCode errorCode = new HttpStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR, "Error receiving client data");
+            rawResponseHeader = new HttpHeader().buildResponse(errorCode);
+            rawResponsePayload = new HttpErrorPage(errorCode).buildPage();
         } catch (HttpStatusCode e) {
             System.out.println("HTTP error " + String.valueOf(e.getStatusCode()) + " - \"" + e.getMessage() + "\" generated:");
             e.printStackTrace();
-            responseStatus = e;
+            HttpHeader responseHeader = new HttpHeader();
+            if (e.getStatusCode() == HttpStatusCode.UNAUTHORIZED) {
+                responseHeader.setField("WWW-Authenticate", "Basic realm=\"System Administrator\"");
+            }
+            rawResponseHeader = responseHeader.buildResponse(e);
+            rawResponsePayload = new HttpErrorPage(e).buildPage();
         }
-
-        byte[] responseHeader = new HttpHeader().buildResponse(responseStatus);
-        if (responseStatus.getStatusCode() == HttpStatusCode.OK) {
-            safeWrite(connection, responseHeader);
-            safeWrite(connection, payload);
-        } else {
-            safeWrite(connection, responseHeader);
-        }
+        safeWrite(connection, rawResponseHeader);
+        safeWrite(connection, rawResponsePayload);
         try {
             connection.close();
         } catch (IOException e) {

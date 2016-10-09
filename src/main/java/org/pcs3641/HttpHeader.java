@@ -5,26 +5,36 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
 
 public class HttpHeader {
     private String method;
     private String page;
     private String version;
-    private Hashtable<String, String> fields;
+    private Hashtable<String, String> fields = new Hashtable<>();
 
     public void parse(Reader rawReader) throws HttpStatusCode {
         BufferedReader reader = new BufferedReader(rawReader);
 
         parseStatusLine(readLine(reader));
 
-        fields = new Hashtable<>();
         for (String line = readLine(reader); !line.isEmpty(); line = readLine(reader)) {
             parseField(line);
         }
     }
 
     public byte[] buildResponse(HttpStatusCode status) {
-        return ("HTTP/1.0 " + String.valueOf(status.getStatusCode()) + " " + status.getMessage() + "\r\n\r\n").getBytes();
+        StringBuilder response = new StringBuilder();
+        response.append("HTTP/1.0 " + String.valueOf(status.getStatusCode()) + " " + status.getMessage() + "\r\n");
+
+        Iterator<Map.Entry<String, String>> it = fields.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, String> entry = it.next();
+            response.append(entry.getKey() + ": " + entry.getValue() + "\r\n");
+        }
+        response.append("\r\n");
+        return response.toString().getBytes();
     }
 
     public String getMethod() {
@@ -45,6 +55,15 @@ public class HttpHeader {
 
     public String getField(String key) {
         return fields.get(key.toLowerCase());
+    }
+
+    public String getField(String key, String defaultValue) {
+        String value = fields.get(key.toLowerCase());
+        return value != null ? value : defaultValue;
+    }
+
+    public void setField(String key, String value) {
+        fields.put(key, value);
     }
 
     private String readLine(BufferedReader reader) throws HttpStatusCode {
