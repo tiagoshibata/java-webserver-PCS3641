@@ -54,9 +54,7 @@ public class HttpConnection extends WebConnection {
 
     private void safeWrite(Socket connection, byte[] data) {
         try {
-            System.out.printf("Length %d\n", data.length);
             OutputStream stream = connection.getOutputStream();
-            System.out.println(stream != null);
             new DataOutputStream(stream).write(data);
         } catch (IOException e) {
             System.out.println("Writing to client failed:");
