@@ -21,7 +21,7 @@ public class HttpServer {
     public static Dictionary<String, String> getConfigSection(String section) {
         if (config == null) {
             try {
-                config = new IniParser(Paths.get("/etc/pcs3641_http"));
+                config = new IniParser(Paths.get("/etc/pcs3641_http.ini"));
             } catch (IOException e) {
                 e.printStackTrace();
                 throw new RuntimeException("Can't read config file");

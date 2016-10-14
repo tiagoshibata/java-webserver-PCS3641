@@ -2,7 +2,7 @@
 Simple didactic Java HTTP server for PCS3641 classes.
 
 ## Configuration
-File `/etc/pcs3641_http` holds configuration options. It must be a valid INI file.
+File `/etc/pcs3641_http.ini` holds configuration options. It must be a valid INI file.
 
 The following sections are supported:
 
@@ -22,3 +22,5 @@ private.pcs3641=/srv/http_private
 [Users]
 admin=admin_password
 ```
+
+All logs are saved in `/etc/pcs3641_http.log`.

@@ -48,6 +48,10 @@ public class HttpHeader {
     public String getVersion() {
         return version;
     }
+    
+    public String getStatusLine() {
+        return method + " " + page + " HTTP/" + version;
+    }
 
     public Dictionary<String, String> getFields() {
         return fields;
