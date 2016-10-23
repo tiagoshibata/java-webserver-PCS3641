@@ -14,19 +14,19 @@ import java.util.Date;
 public class HttpConnection extends WebConnection {
 	private DataOutputStream log;
 	private static final DateFormat dateFormat = new SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss Z");
-	
+
     HttpConnection(Socket connection) {
         super(connection);
         FileOutputStream logFile;
         try {
-        	logFile = new FileOutputStream("/etc/pcs3641_http.log", true);
-        	log = new DataOutputStream(logFile);
+               logFile = new FileOutputStream("/var/log/pcs3641_http/access.log", true);
+               log = new DataOutputStream(logFile);
         } catch (FileNotFoundException e) {
-        	System.out.println("Unable to open 'log.txt' file:");
+            System.out.println("Unable to open 'log.txt' file:");
             System.out.println(e.toString());
             log = null;
         }
-        
+
     }
 
     protected void handleConnection(Socket connection) {
@@ -34,7 +34,7 @@ public class HttpConnection extends WebConnection {
         byte[] rawResponseHeader;
         byte[] rawResponsePayload;
         HttpHeader header = new HttpHeader();
-        
+
         try {
             InputStreamReader reader = new InputStreamReader(connection.getInputStream());
             header.parse(reader);
@@ -87,7 +87,7 @@ public class HttpConnection extends WebConnection {
             System.out.println(e.toString());
         }
     }
-    
+
     private void logConnection(Socket connection, HttpHeader requestHeader, HttpStatusCode responseStatus, byte[] rawResponsePayload) {
     	try {
     		String ip = connection.getInetAddress().getHostAddress();

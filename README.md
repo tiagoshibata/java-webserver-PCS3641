@@ -23,4 +23,4 @@ private.pcs3641=/srv/http_private
 admin=admin_password
 ```
 
-All logs are saved in `/etc/pcs3641_http.log`.
+All logs are saved in `/var/log/pcs3641_http/access.log`.
