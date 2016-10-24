@@ -34,6 +34,7 @@ public class HttpConnection extends WebConnection {
         byte[] rawResponseHeader;
         byte[] rawResponsePayload;
         HttpHeader header = new HttpHeader();
+        HttpHeader responseHeader = new HttpHeader();
 
         try {
             InputStreamReader reader = new InputStreamReader(connection.getInputStream());
@@ -46,27 +47,24 @@ public class HttpConnection extends WebConnection {
             HttpFileLoader loader = new HttpFileLoader(header);
             rawResponsePayload = loader.read();
 
-            HttpHeader responseHeader = new HttpHeader();
             responseHeader.setField("Content-type", loader.getMime());
-            rawResponseHeader = responseHeader.buildResponse((responseStatus));
         } catch (IOException e) {
             System.out.println("Reading from client failed:");
             e.printStackTrace();
             HttpStatusCode errorCode = new HttpStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR, "Error receiving client data");
             responseStatus = errorCode;
-            rawResponseHeader = new HttpHeader().buildResponse(errorCode);
             rawResponsePayload = new HttpErrorPage(errorCode).buildPage();
         } catch (HttpStatusCode e) {
             System.out.println("HTTP error " + String.valueOf(e.getStatusCode()) + " - \"" + e.getMessage() + "\" generated:");
             e.printStackTrace();
-            HttpHeader responseHeader = new HttpHeader();
             if (e.getStatusCode() == HttpStatusCode.UNAUTHORIZED) {
                 responseHeader.setField("WWW-Authenticate", "Basic realm=\"System Administrator\"");
             }
             responseStatus = e;
-            rawResponseHeader = responseHeader.buildResponse(e);
             rawResponsePayload = new HttpErrorPage(e).buildPage();
         }
+        responseHeader.setField("Content-Length", String.valueOf(rawResponsePayload.length));
+        rawResponseHeader = responseHeader.buildResponse(responseStatus);
         safeWrite(connection, rawResponseHeader);
         safeWrite(connection, rawResponsePayload);
         logConnection(connection, header, responseStatus, rawResponsePayload);
